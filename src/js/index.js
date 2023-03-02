@@ -1,4 +1,4 @@
-import { Application, Container, TilingSprite } from 'pixi.js';
+import { Application, TilingSprite } from 'pixi.js';
 import { positionsConfig } from './positionsConfig';
 import * as PIXI from 'pixi.js';
 
@@ -60,6 +60,8 @@ const vodnik1 = PIXI.Texture.from(basePath + '/assets/l2/items/vodnik_0.png');
 const drak0 = PIXI.Texture.from(basePath + '/assets/l3/items/drak_0.png');
 const drak1 = PIXI.Texture.from(basePath + '/assets/l3/items/drak_1.png');
 
+//import background layer images
+
 const bgLayer0 = new TilingSprite(
   bgLayer0Texture,
   app.screen.width,
@@ -84,159 +86,24 @@ const bgLayer3 = new TilingSprite(
   app.screen.height
 );
 
-//How fast will the layers move? 6:26
+//How fast will the layers move?
 let bgX = 0;
 let currentX = 0;
 
 let bgSpeed = 1;
 let bgMoving = false;
-let bgLayer3Offset = 300;
 
-bgLayer1.x = 0; // Move second layer to the right for a parallax effect
-
-app.stage.addChild(bgLayer0);
-app.stage.addChild(bgLayer1);
-app.stage.addChild(bgLayer2);
-app.stage.addChild(bgLayer3);
+app.stage.addChild(bgLayer0, bgLayer1, bgLayer2, bgLayer3);
 
 const characterSprites = {};
 
-function updateCharactersPosition(bgX) {
-  for (const { items, name } of positionsConfig) {
-    if (items) {
-      // check necessary because not all arrays have the items property
-      for (const { id, x, y } of items) {
-        const character = characterSprites[id];
-
-        if (character) {
-          switch (name) {
-            case 'l1':
-              character.position.set(x + bgLayer1.x - bgX / 3, y);
-              break;
-            case 'l2':
-              character.position.set(x + bgLayer2.x - bgX / 2, y);
-              break;
-            case 'l3':
-              character.position.set(x + bgLayer3.x - bgX / 1.5, y);
-              break;
-            default:
-              console.log(`invalid name ${name}`);
-          }
-        }
-      }
-    }
-  }
-}
-
-function updateCharactersTextures(mouseX, mouseY) {
-  for (const { items, name } of positionsConfig) {
-    if (items) {
-      // check necessary because not all arrays have the items property
-      for (const { id, x, y } of items) {
-        const character = characterSprites[id];
-
-        if (character) {
-          const mouseOver =
-            mouseX >= character.x &&
-            mouseX <= character.x + character.width &&
-            mouseY >= character.y &&
-            mouseY <= character.y + character.height;
-
-          if (mouseOver) {
-            character.texture = charTextureFinals[id];
-          } else {
-            character.texture = charTextureInits[id];
-          }
-        }
-      }
-    }
-  }
-}
-
-app.stage.on('mousemove', (e) => {
-  const globalMousePosition = e.data.global;
-  updateCharactersTextures(globalMousePosition.x, globalMousePosition.y);
-});
-
-let previousX = 0;
-
-function updateBg() {
-  if (bgMoving) {
-    bgX += bgSpeed;
-    bgLayer3.tilePosition.x = bgX / 1.5;
-    bgLayer2.tilePosition.x = bgX / 2;
-    bgLayer1.tilePosition.x = bgX / 3;
-    bgLayer0.tilePosition.x = 0;
-  }
-
-  const stopPosition = stageSize.STAGE_WIDTH + 200;
-  const currentX = -bgX;
-
-  if (Math.abs(bgX) >= stopPosition) {
-    bgMoving = false;
-    if (bgX > 0) {
-      bgX = stopPosition;
-    } else {
-      bgX = -stopPosition;
-    }
-    bgLayer3.tilePosition.x = bgX / 1.5;
-    bgLayer2.tilePosition.x = bgX / 2;
-    bgLayer1.tilePosition.x = bgX / 3;
-    bgLayer0.tilePosition.x = 0;
-  }
-
-  const stopPositionLeft = 0.01;
-  if (bgX >= stopPositionLeft) {
-    bgMoving = false;
-    if (bgX > 0) {
-      bgX = stopPositionLeft;
-    } else {
-      bgX = -stopPositionLeft;
-    }
-    bgLayer3.tilePosition.x = bgX / 1.5;
-    bgLayer2.tilePosition.x = bgX / 2;
-    bgLayer1.tilePosition.x = bgX / 3;
-    bgLayer0.tilePosition.x = 0;
-  }
-
-  updateCharactersPosition(currentX, previousX);
-}
-
-//Switch directions
-let lastKeyCode = null;
-
-function switchDirection(e) {
-  if (e.type === 'mousemove') {
-    // Mouse movement
-    const mousePos = { x: e.clientX, y: e.clientY };
-    const stageCenter = app.screen.width / 2;
-    const distanceFromCenter = mousePos.x - stageCenter;
-    const speedFactor = -distanceFromCenter / stageCenter; //negative number necessary for the screen to "follow" the mouse
-    bgSpeed = speedFactor * 10;
-    bgMoving = true;
-  } else if (e.code === 'ArrowLeft' && lastKeyCode !== 'ArrowLeft') {
-    // Left arrow key
-    bgSpeed = 1;
-    bgMoving = true;
-  } else if (e.code === 'ArrowRight' && lastKeyCode !== 'ArrowRight') {
-    // Right arrow key
-    bgSpeed = -1;
-    bgMoving = true;
-  } else if (e.code === 'ArrowLeft' && lastKeyCode === 'ArrowLeft') {
-    bgSpeed += 1;
-  } else if (e.code === 'ArrowRight' && lastKeyCode === 'ArrowRight') {
-    bgSpeed -= 1;
-  }
-
-  lastKeyCode = e.code;
-}
+//Add characters to the background
 
 function addCharactersToScene(positionsConfig) {
   for (const { items, name } of positionsConfig) {
     if (items) {
       //check necessary because not all arrays have the items property
       for (const { id, x, y } of items) {
-        console.log(`The id is ${id} and the name is ${name} `);
         charTextureInits[id] = PIXI.Texture.from(
           basePath + `assets/${name}/items/${id}_0.png`
         );
@@ -244,7 +111,6 @@ function addCharactersToScene(positionsConfig) {
         charTextureFinals[id] = PIXI.Texture.from(
           basePath + `assets/${name}/items/${id}_1.png`
         );
-        console.log(name);
 
         // Set the character's position relative to the background layer
         switch (name) {
@@ -283,17 +149,119 @@ function addCharactersToScene(positionsConfig) {
 
 addCharactersToScene(positionsConfig);
 
-document.addEventListener('keydown', (e) => {
-  if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
-    bgMoving = true;
+//Update the position of the character based on how the background moves, to appear as if it stayed in the same position
+function updateCharactersPosition(bgX) {
+  for (const { items, name } of positionsConfig) {
+    if (items) {
+      // check necessary because not all arrays have the items property
+      for (const { id, x, y } of items) {
+        const character = characterSprites[id];
+
+        if (character) {
+          switch (name) {
+            case 'l1':
+              character.position.set(x + bgLayer1.x - bgX / 3, y);
+              break;
+            case 'l2':
+              character.position.set(x + bgLayer2.x - bgX / 1.85, y);
+              break;
+            case 'l3':
+              character.position.set(x + bgLayer3.x - bgX / 1.5, y);
+              break;
+            default:
+              console.log(`invalid name ${name}`);
+          }
+        }
+      }
+    }
   }
+}
+
+//update character state on mouse overs
+function updateCharactersTextures(mouseX, mouseY) {
+  for (const { items, name } of positionsConfig) {
+    if (items) {
+      // check necessary because not all arrays have the items property
+      for (const { id, x, y } of items) {
+        const character = characterSprites[id];
+
+        if (character) {
+          const mouseOver =
+            mouseX >= character.x &&
+            mouseX <= character.x + character.width &&
+            mouseY >= character.y &&
+            mouseY <= character.y + character.height;
+
+          if (mouseOver) {
+            character.texture = charTextureFinals[id];
+          } else {
+            character.texture = charTextureInits[id];
+          }
+        }
+      }
+    }
+  }
+}
+
+app.stage.on('mousemove', (e) => {
+  const globalMousePosition = e.global;
+  updateCharactersTextures(globalMousePosition.x, globalMousePosition.y);
 });
 
-document.addEventListener('keyup', (e) => {
-  if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
-    bgMoving = false;
+let previousX = 0;
+
+//change the background at different speeds, to achieve a parallax effect
+function updateBg() {
+  if (bgMoving) {
+    bgX += bgSpeed;
+    bgLayer3.tilePosition.x = bgX / 1.5;
+    bgLayer2.tilePosition.x = bgX / 2;
+    bgLayer1.tilePosition.x = bgX / 3;
+    bgLayer0.tilePosition.x = 0;
   }
-});
+  //stop at the edges of the screen to prevent infinite scrolling
+  const stopPosition = stageSize.STAGE_WIDTH + 200;
+  const currentX = -bgX;
+
+  if (Math.abs(bgX) >= stopPosition) {
+    bgMoving = false;
+    if (bgX > 0) {
+      bgX = stopPosition;
+    } else {
+      bgX = -stopPosition;
+    }
+    bgLayer3.tilePosition.x = bgX / 1.5;
+    bgLayer2.tilePosition.x = bgX / 2;
+    bgLayer1.tilePosition.x = bgX / 3;
+    bgLayer0.tilePosition.x = 0;
+  }
+
+  const stopPositionLeft = 0.01;
+  if (bgX >= stopPositionLeft) {
+    bgMoving = false;
+    if (bgX > 0) {
+      bgX = stopPositionLeft;
+    } else {
+      bgX = -stopPositionLeft;
+    }
+    bgLayer3.tilePosition.x = bgX / 1.5;
+    bgLayer2.tilePosition.x = bgX / 2;
+    bgLayer1.tilePosition.x = bgX / 3;
+    bgLayer0.tilePosition.x = 0;
+  }
+
+  updateCharactersPosition(currentX, previousX);
+}
+
+//Switch direction upon mouse position
+function switchDirection(e) {
+  const mousePos = { x: e.clientX, y: e.clientY };
+  const stageCenter = app.screen.width / 2;
+  const distanceFromCenter = mousePos.x - stageCenter;
+  const speedFactor = -distanceFromCenter / stageCenter;
+  bgSpeed = speedFactor * 10;
+  bgMoving = true;
+}
 
 document.addEventListener('mousemove', switchDirection);
 app.ticker.add(updateBg); // Call updateBg function continuously to update the position of the background layers.
