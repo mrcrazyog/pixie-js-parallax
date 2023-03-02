@@ -28,6 +28,9 @@ let app = new Application({
 // Enable interactivity!
 app.stage.interactive = true;
 
+const charTextureInits = {};
+const charTextureFinals = {};
+
 // Make sure the whole canvas area is interactive, not just the circle.
 app.stage.hitArea = app.screen;
 
@@ -54,6 +57,8 @@ const jezibaba1 = PIXI.Texture.from(
 );
 const vodnik0 = PIXI.Texture.from(basePath + '/assets/l2/items/vodnik_0.png');
 const vodnik1 = PIXI.Texture.from(basePath + '/assets/l2/items/vodnik_0.png');
+const drak0 = PIXI.Texture.from(basePath + '/assets/l3/items/drak_0.png');
+const drak1 = PIXI.Texture.from(basePath + '/assets/l3/items/drak_1.png');
 
 const bgLayer0 = new TilingSprite(
   bgLayer0Texture,
@@ -122,6 +127,36 @@ function updateCharactersPosition(bgX) {
     }
   }
 }
+
+function updateCharactersTextures(mouseX, mouseY) {
+  for (const { items, name } of positionsConfig) {
+    if (items) {
+      // check necessary because not all arrays have the items property
+      for (const { id, x, y } of items) {
+        const character = characterSprites[id];
+
+        if (character) {
+          const mouseOver =
+            mouseX >= character.x &&
+            mouseX <= character.x + character.width &&
+            mouseY >= character.y &&
+            mouseY <= character.y + character.height;
+
+          if (mouseOver) {
+            character.texture = charTextureFinals[id];
+          } else {
+            character.texture = charTextureInits[id];
+          }
+        }
+      }
+    }
+  }
+}
+
+app.stage.on('mousemove', (e) => {
+  const globalMousePosition = e.data.global;
+  updateCharactersTextures(globalMousePosition.x, globalMousePosition.y);
+});
 
 let previousX = 0;
 
@@ -197,9 +232,6 @@ function switchDirection(e) {
 }
 
 function addCharactersToScene(positionsConfig) {
-  const charTextureInits = {};
-  const charTextureFinals = {};
-
   for (const { items, name } of positionsConfig) {
     if (items) {
       //check necessary because not all arrays have the items property
@@ -235,21 +267,14 @@ function addCharactersToScene(positionsConfig) {
         // Add the character sprite to the characterSprites object
         characterSprites[id] = character;
 
-        console.log(name, 'name is');
         // Add mouseover and mouseout event listeners
         character.interactive = true;
-
-        character.on('mouseover', (event) => {
-          const character = event.currentTarget;
-          const charTexture = charTextureFinals[id];
-          character.texture = charTexture;
-          character.parent.addChild(character);
+        character.buttonMode = true;
+        character.on('mouseover', () => {
+          character.texture = charTextureFinals[id];
         });
-        character.on('mouseout', (event) => {
-          const character = event.currentTarget;
-          const charTexture = charTextureInits[id];
-          character.texture = charTexture;
-          character.parent.addChild(character);
+        character.on('mouseout', () => {
+          character.texture = charTextureInits[id];
         });
       }
     }
