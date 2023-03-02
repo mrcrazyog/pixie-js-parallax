@@ -1,0 +1,30 @@
+Cílem úkolu je vytvořit js projekt, který po lokálním spuštění sestaví interaktivní scénu vytvořenou ve frameworku Pixi.js (https://pixijs.com/).
+Scéna se skládá ze čtyř paralaxních vrstev s pozadím a několika postavičkami, které se po najetí myši přepnou do své druhé fáze.
+
+Základ Pixi projektu naleznete zde: https://github.com/miltoncandelero/pixi-hotwire nebo (mírně poupravený) ve složce pixi_template.
+Obojí využívá webpack / webpack-dev-server.
+
+Pár užitečných odkazů k pixi.js:
+Getting started - https://www.pixijselementals.com/#introduction
+https://github.com/kittykatattack/learningPixi (pro starsi verzi Pixi)
+Examples - https://pixijs.io/examples/
+
+Grafické podklady jsou umístěny ve složce assets/graphics.
+
+- assets/graphics/source-2800x800.psd - obsahuje vše, paralax vrstvy jsou ve skupinách l0 - l3, postavičky ve skupinách items, fáze postaviček ve smart objektech.
+- veškerá potřebná grafika ve správných velikostech je vyexportována ve složce assets/graphics/exported_images !!!
+- v assets/graphics/result je náhled výsledného projektu 
+    - center.jpg - výsledná scéna při pozice myši uprostřed obrazu
+    - mouse_left.jpg / mouse_right.jpg - myš umístěna zcela vlevo / vpravo 
+
+
+Paralax
+- velikost canvasu je 1600x800 px, není třeba řešit změnu velikosti okna.
+- při pohybu myši ke krajům obrazu se vrstvy pohybují horizontálně různou rychlostí podle šířky pozadí.
+  tj. zadní vrstva (l0) má pozadí (bg_0.png) široké 1600 px, stejně jako je šířka canvasu, takže se nehýbe.
+  přední vrstva (l3) má nejširší pozadí (2800 px - bg_3.png), takže se hýbe nejrychleji. 
+- positionsConfig.js - obsahuje pozice a velikosti vrstev, vyexportovaných z Photoshopu.
+    Tyto hodnoty použijte pro umístění všech prvků do scény. !!! 
+
+Postavičky
+Každá postavička má pak dvě fáze - fáze označená [jméno]_0.png se zobrazí po spuštění, fáze [jméno]_1.png na najetí myši.
