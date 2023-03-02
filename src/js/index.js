@@ -106,7 +106,7 @@ function updateCharactersPosition(bgX) {
         if (character) {
           switch (name) {
             case 'l1':
-              character.position.set(x + bgLayer1.x - bgX * 0.3, y);
+              character.position.set(x + bgLayer1.x - bgX / 3, y);
               break;
             case 'l2':
               character.position.set(x + bgLayer2.x - bgX / 2, y);
@@ -197,16 +197,21 @@ function switchDirection(e) {
 }
 
 function addCharactersToScene(positionsConfig) {
+  const charTextureInits = {};
+  const charTextureFinals = {};
+
   for (const { items, name } of positionsConfig) {
     if (items) {
       //check necessary because not all arrays have the items property
       for (const { id, x, y } of items) {
         console.log(`The id is ${id} and the name is ${name} `);
-        const charTextureInit = PIXI.Texture.from(
+        charTextureInits[id] = PIXI.Texture.from(
           basePath + `assets/${name}/items/${id}_0.png`
         );
-        const character = new PIXI.Sprite(charTextureInit);
-        const charTextureFinal = basePath + `assets/${name}/items/${id}_1.png`;
+        const character = new PIXI.Sprite(charTextureInits[id]);
+        charTextureFinals[id] = PIXI.Texture.from(
+          basePath + `assets/${name}/items/${id}_1.png`
+        );
         console.log(name);
 
         // Set the character's position relative to the background layer
@@ -229,7 +234,23 @@ function addCharactersToScene(positionsConfig) {
 
         // Add the character sprite to the characterSprites object
         characterSprites[id] = character;
+
         console.log(name, 'name is');
+        // Add mouseover and mouseout event listeners
+        character.interactive = true;
+
+        character.on('mouseover', (event) => {
+          const character = event.currentTarget;
+          const charTexture = charTextureFinals[id];
+          character.texture = charTexture;
+          character.parent.addChild(character);
+        });
+        character.on('mouseout', (event) => {
+          const character = event.currentTarget;
+          const charTexture = charTextureInits[id];
+          character.texture = charTexture;
+          character.parent.addChild(character);
+        });
       }
     }
   }
@@ -251,7 +272,3 @@ document.addEventListener('keyup', (e) => {
 
 document.addEventListener('mousemove', switchDirection);
 app.ticker.add(updateBg); // Call updateBg function continuously to update the position of the background layers.
-
-document.addEventListener('mousemove', (e) => {
-  console.log(`Mouse X coordinate: ${e.clientX}`);
-});
